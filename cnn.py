@@ -74,9 +74,15 @@ class Network:
         return
     
         
-    def CalculateOverlaps():
+    def CalculateOverlaps(self):
+        Vmean=np.mean(self.V)
+        sp=pow(np.mean(self.V),2)/np.mean(pow(self.V,2))
+        for mu in range(self.p):
+            for i in range(self.N):
+                for j in range(self.N):
+                    self.m[mu]=self.m[mu]+(self.V[i]-Vmean)*(self.V[j]-Vmean)*K1cos(self.r[i][mu],self.r[j][mu])
+            self.m[mu]=np.sqrt(self.m[mu]/pow(float(self.N),2))/sp
         return
-        
         
 #Other Functions
 def TF(h,h0,g):

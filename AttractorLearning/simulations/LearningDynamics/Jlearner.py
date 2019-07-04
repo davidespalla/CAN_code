@@ -46,8 +46,9 @@ class Jlearner:
                     self.JB[i][j]=Kgauss2D(self.gridB[i],self.gridB[j],sigma,cutoff)
         #self.JB=self.JB/LA.norm(self.JB)
         return
-                    
-    def computeV(self,r,a,a2,sigma,cutoff): 
+     
+    #Activity determined only by the external field: J does not influence the values of V               
+    def computeV0(self,r,a,a2,sigma,cutoff): 
         maxsteps=50
         b=0.01
         tolerance=0.01
@@ -61,12 +62,45 @@ class Jlearner:
         self.V=self.g*self.V
         return
     
+    #Input fields sum recurrent contribution and external contribution, with relative weight s
+    def computeVrc(self,r,s,a,a2,sigma,cutoff): 
+        maxsteps=50
+        b=0.01
+        tolerance=0.01
+        maxiter=1000000
+        self.h=s*np.dot(self.J,self.V)
+        for i in range(self.N):
+                self.h[i]+=(s*s+Kgauss2D(self.gridB[i],r,sigma,cutoff))/(1+s)
+        self.V=np.asarray(list(map(lambda h: f(h,self.h0,self.g),self.h)))
+        self.h0=fix_parameters(self.V,self.h,self.g,self.h0,a,a2,b,tolerance,maxiter)
+        self.V=np.asarray(list(map(lambda h: f(h,self.h0,self.g),self.h)))
+        self.g=a/np.mean(self.V)
+        self.V=self.g*self.V
+        return
+    
     def updateJ(self,eta,gamma): 
         #meanV=np.mean(self.V)
         for i in range(self.N):
             for j in range(self.N):
                 if j!=i:
-                    self.J[i][j]=self.J[i][j]+eta*(self.V[i])*(self.V[j])-gamma*self.J[i][j]
+                    delta=eta*(self.V[i])*(self.V[j])-gamma*self.J[i][j]
+                    self.J[i][j]+=delta
+                else:
+                    self.J[i][j]=0
+                    
+                if self.J[i][j]<0:
+                    self.J[i][j]=0
+        #self.J=self.J/LA.norm(self.J)
+        return
+    
+    def updateJ1(self,eta,gamma): 
+        #meanV=np.mean(self.V)
+        for i in range(self.N):
+            for j in range(self.N):
+                if j!=i:
+                    if (self.V[i])*(self.V[j])>0:
+                        delta=eta*(self.V[i])*(self.V[j])-gamma*self.J[i][j]
+                        self.J[i][j]+=delta
                 else:
                     self.J[i][j]=0
                     
@@ -75,29 +109,55 @@ class Jlearner:
         #self.J=self.J/LA.norm(self.J)
         return
             
-    def LearningDynamics(self,eta,gamma,nepochs,a,a2,sigma,cutoff,simulation_name): #total learning of the CM in t steps of a path
+    def LearningDynamics0(self,eta,gamma,timesteps,a,a2,sigma,cutoff,simulation_name): 
         self.J=copy.deepcopy(self.JA)
-        labels=np.asarray(range(self.N))
+        rsamples=np.random.uniform(0,1,size=(timesteps,2))
+        np.save(simulation_name+"/rsamples.npy",rsamples)
         print("initial ovelaps: mJA="+str(overlap(self.J,self.JA))+"  mJB="+str(overlap(self.J,self.JB))+"  mJAB="+str(overlap(self.J,self.JB+self.JA)))
-        mJA=np.zeros(self.N)
-        mJB=np.zeros(self.N)
-        mJAB=np.zeros(self.N)
-        for epoch in range(nepochs):
-            np.random.shuffle(labels)
-            for t in range(self.N):
-                r=self.gridB[labels[t]]
-                self.computeV(r,a,a2,sigma,cutoff) 
-                self.updateJ(eta,gamma) 
-                mJA[t]=overlap(self.J,self.JA)
-                mJB[t]=overlap(self.J,self.JB)
-                mJAB[t]=overlap(self.J,self.JB+self.JA)
-                np.save(simulation_name+"/J"+str(t),self.J)
+        mJA=np.zeros(timesteps)
+        mJB=np.zeros(timesteps)
+        mJAB=np.zeros(timesteps)
+        for t in range(timesteps):
+            r=rsamples[t]
+            self.computeV0(r,a,a2,sigma,cutoff) 
+            self.updateJ(eta,gamma) 
+            mJA[t]=overlap(self.J,self.JA)
+            mJB[t]=overlap(self.J,self.JB)
+            mJAB[t]=overlap(self.J,self.JB+self.JA)
+            np.save(simulation_name+"/J"+str(t),self.J)
+            if t%100==0:
+                print(str(t)+" positions explored.")
                 print("Ovelaps: mJA="+str(overlap(self.J,self.JA))+"  mJB="+str(overlap(self.J,self.JB))+"  mJAB="+str(overlap(self.J,self.JB+self.JA)))
-            print("Epoch "+str(epoch)+" completed.")
             
             
         return mJA,mJB,mJAB
-           
+    
+    
+    
+    def LearningDynamicsRC(self,s,eta,gamma,timesteps,a,a2,sigma,cutoff,simulation_name): 
+        self.J=copy.deepcopy(self.JA)
+        rsamples=np.random.uniform(0,1,size=(timesteps,2))
+        np.save("rsamples.npy",rsamples)
+        print("initial ovelaps: mJA="+str(overlap(self.J,self.JA))+"  mJB="+str(overlap(self.J,self.JB))+"  mJAB="+str(overlap(self.J,self.JB+self.JA)))
+        mJA=np.zeros(timesteps)
+        mJB=np.zeros(timesteps)
+        mJAB=np.zeros(timesteps)
+        for t in range(timesteps):
+            r=rsamples[t]
+            self.computeVrc(r,s,a,a2,sigma,cutoff) 
+            self.updateJ1(eta,gamma) 
+            mJA[t]=overlap(self.J,self.JA)
+            mJB[t]=overlap(self.J,self.JB)
+            mJAB[t]=overlap(self.J,self.JB+self.JA)
+            np.save(simulation_name+"/J"+str(t),self.J)
+            if t%1==0:
+                print(str(t)+" positions explored.")
+                print("Ovelaps: mJA="+str(overlap(self.J,self.JA))+"  mJB="+str(overlap(self.J,self.JB))+"  mJAB="+str(overlap(self.J,self.JB+self.JA)))
+            
+            
+        return mJA,mJB,mJAB
+            
+            
             
     
        

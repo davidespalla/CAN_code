@@ -12,7 +12,7 @@ import numpy as np
 import os
 
 #PARAMETERS
-simulation_name="s1"
+simulation_name="s3"
 n=20 #linear number of cells
 N=n*n
 ksigma=0.1
@@ -21,8 +21,9 @@ a=1
 sparsity=0.1
 Nuncorr=N
 eta=0.001
-gamma=0.01
-nepochs=1
+gamma=0.05
+timesteps=500
+s=0
 
 print("Initializing...")
 
@@ -41,7 +42,7 @@ np.save(simulation_name+"/JB",Network.JB)
 print("Initialization completed")
 
 
-mJA,mJB,mJAB=Network.LearningDynamics(eta,gamma,nepochs,a,sparsity,ksigma,kcut,simulation_name)
+mJA,mJB,mJAB=Network.LearningDynamicsRC(s,eta,gamma,timesteps,a,sparsity,ksigma,kcut,simulation_name)
 
 np.save(simulation_name+"/mJA",mJA)
 np.save(simulation_name+"/mJB",mJB)

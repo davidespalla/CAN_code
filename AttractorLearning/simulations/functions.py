@@ -8,17 +8,19 @@ import random
 
 
 def partialshuffle(inp,n):
-    #randomly selects n position in the list
-    indexes=list(range(len(inp)))
-    random.shuffle(indexes)
-    args=indexes[:n]
-    #defines copy of input and 
     out= copy.deepcopy(inp)
-    c = copy.deepcopy(args)
-    #generate target position by shuffling copy of args
-    random.shuffle(c)
-    for i in range(len(args)):
-        out[args[i]]=inp[c[i]]
+    if n>0:
+        #randomly selects n position in the list
+        indexes=list(range(len(inp)))
+        random.shuffle(indexes)
+        args=indexes[:n]
+        #defines copy of input and 
+        c = copy.deepcopy(args)
+        #generate target position by shuffling copy of args
+        random.shuffle(c)
+        for i in range(len(args)):
+            out[args[i]]=inp[c[i]]
+    
     return out
 
 
@@ -47,3 +49,26 @@ def Kgauss2D(r_i,r_j,sigma,cutoff):
         else:
             out=0    
         return out
+    
+def positive_mean(v,th):
+    return np.mean([x-th for x in v if x-th>0])
+    
+def fix_parameters(V,h,g,h0,a,a2,b,tolerance,maxiter):
+    fixed=False
+    it=0
+    while (not fixed) and it<maxiter:
+        h0=h0+b*((pow(np.mean(V),2)/float(np.mean(pow(V,2))))-a2)
+        V=np.asarray(list(map(lambda h: f(h,h0,g),h)))
+        fixed=(np.abs(((pow(np.mean(V),2)/float(np.mean(pow(V,2))))-a2))/a2 <= tolerance)
+        it=it+1
+    if it>=maxiter:
+        print("fixing failed")
+    
+    return h0
+    
+    
+    
+    
+    
+    
+    

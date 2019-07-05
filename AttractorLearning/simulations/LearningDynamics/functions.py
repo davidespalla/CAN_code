@@ -4,6 +4,7 @@ import re
 import os
 import inspect
 import copy
+import math
 
 def partialshuffle(inp,n):
     out= copy.deepcopy(inp)
@@ -42,7 +43,7 @@ def Kgauss2D(r_i,r_j,sigma,cutoff):
         d=np.sqrt(pow(dx,2)+pow(dy,2))
         
         if d<=cutoff:
-            out=np.exp(-(pow(d,2)/(2*pow(sigma,2))))
+            out=(1.0/(np.sqrt(2*math.pi))*sigma)*np.exp(-(pow(d,2)/(2*pow(sigma,2))))
         else:
             out=0    
         return out
@@ -67,3 +68,20 @@ def overlap(matA,matB):
         m=np.multiply(matA,matB).sum()
         m=m/float(LA.norm(matA)*LA.norm(matB))
         return m
+
+def save_parameters(simulation_name,N,ksigma,kcut,a,sparsity,Nuncorr,eta,gamma,timesteps,s):
+    f= open(simulation_name+"/parameters.txt","w+")
+    f.writelines("N: "+str(N)+"\n")
+    f.writelines("ksigma: "+str(ksigma)+"\n")
+    f.writelines("kcut: "+str(kcut)+"\n")
+    f.writelines("a: "+str(a)+"\n")
+    f.writelines("sparsity: "+str(sparsity)+"\n")
+    f.writelines("Nuncorr: "+str(Nuncorr)+"\n")
+    f.writelines("eta: "+str(eta)+"\n")
+    f.writelines("gamma: "+str(gamma)+"\n")
+    f.writelines("timesteps: "+str(timesteps)+"\n")
+    f.writelines("s: "+str(s)+"\n")
+    f.close() 
+    return
+    
+    

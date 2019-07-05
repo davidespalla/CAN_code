@@ -12,7 +12,7 @@ import numpy as np
 import os
 
 #PARAMETERS
-simulation_name="s3"
+simulation_name="s6"
 n=20 #linear number of cells
 N=n*n
 ksigma=0.1
@@ -22,13 +22,16 @@ sparsity=0.1
 Nuncorr=N
 eta=0.001
 gamma=0.05
-timesteps=500
+timesteps=1000
 s=0
+saveJs=True
 
 print("Initializing...")
 
 if not os.path.exists(simulation_name):
     os.makedirs(simulation_name)
+
+save_parameters(simulation_name,N,ksigma,kcut,a,sparsity,Nuncorr,eta,gamma,timesteps,s)
 
 Network=Jlearner.Jlearner(n)
 Network.build_gridA()
@@ -42,7 +45,7 @@ np.save(simulation_name+"/JB",Network.JB)
 print("Initialization completed")
 
 
-mJA,mJB,mJAB=Network.LearningDynamicsRC(s,eta,gamma,timesteps,a,sparsity,ksigma,kcut,simulation_name)
+mJA,mJB,mJAB=Network.LearningDynamicsRC(s,eta,gamma,timesteps,a,sparsity,ksigma,kcut,simulation_name,saveJs)
 
 np.save(simulation_name+"/mJA",mJA)
 np.save(simulation_name+"/mJB",mJB)

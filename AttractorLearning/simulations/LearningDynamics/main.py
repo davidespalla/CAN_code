@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Tue May  7 11:31:46 2019
-
-@author: leonardo
-"""
-
 from functions import * 
 import Jlearner
 import numpy as np
@@ -15,23 +9,24 @@ import os
 simulation_name="s6"
 n=20 #linear number of cells
 N=n*n
-ksigma=0.1
+ksigma=0.5
 kcut=5*ksigma
 a=1
-sparsity=0.1
+sparsity=0.5
 Nuncorr=N
-eta=0.001
-gamma=0.05
+eta=0.00001
+gamma=0.08
 timesteps=1000
 s=0
 saveJs=True
+normalization="hardL2" #choose betw: hardL2 -- softL2
 
 print("Initializing...")
 
 if not os.path.exists(simulation_name):
     os.makedirs(simulation_name)
 
-save_parameters(simulation_name,N,ksigma,kcut,a,sparsity,Nuncorr,eta,gamma,timesteps,s)
+save_parameters(simulation_name,N,ksigma,kcut,a,sparsity,Nuncorr,eta,gamma,timesteps,s,normalization)
 
 Network=Jlearner.Jlearner(n)
 Network.build_gridA()
@@ -44,9 +39,16 @@ np.save(simulation_name+"/JA",Network.JA)
 np.save(simulation_name+"/JB",Network.JB)
 print("Initialization completed")
 
-
-mJA,mJB,mJAB=Network.LearningDynamicsRC(s,eta,gamma,timesteps,a,sparsity,ksigma,kcut,simulation_name,saveJs)
-
+if normalization=="hardL2":
+    print("Starting learning dynamics with hard L2 normalization")
+    mJA,mJB,mJAB=Network.LearningDynamicsRC_L2norm(s,eta,timesteps,a,sparsity,ksigma,kcut,simulation_name,saveJs)
+elif normalization=="softL2":
+    print("Starting learning dynamics with soft L2 normalization")
+    mJA,mJB,mJAB=Network.LearningDynamicsRC(s,eta,gamma,timesteps,a,sparsity,ksigma,kcut,simulation_name,saveJs)
+    
+else:
+    print("Invalid value for normalization")
+    
 np.save(simulation_name+"/mJA",mJA)
 np.save(simulation_name+"/mJB",mJB)
 np.save(simulation_name+"/mJAB",mJAB)

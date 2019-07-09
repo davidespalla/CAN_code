@@ -69,7 +69,7 @@ def overlap(matA,matB):
         m=m/float(LA.norm(matA)*LA.norm(matB))
         return m
 
-def save_parameters(simulation_name,N,ksigma,kcut,a,sparsity,Nuncorr,eta,gamma,timesteps,s):
+def save_parameters(simulation_name,N,ksigma,kcut,a,sparsity,Nuncorr,eta,gamma,timesteps,s,normalization):
     f= open(simulation_name+"/parameters.txt","w+")
     f.writelines("N: "+str(N)+"\n")
     f.writelines("ksigma: "+str(ksigma)+"\n")
@@ -81,6 +81,7 @@ def save_parameters(simulation_name,N,ksigma,kcut,a,sparsity,Nuncorr,eta,gamma,t
     f.writelines("gamma: "+str(gamma)+"\n")
     f.writelines("timesteps: "+str(timesteps)+"\n")
     f.writelines("s: "+str(s)+"\n")
+    f.writelines("normalization: "+str(normalization)+"\n")
     f.close() 
     return
     

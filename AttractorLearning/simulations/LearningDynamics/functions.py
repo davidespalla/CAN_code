@@ -69,7 +69,7 @@ def overlap(matA,matB):
         m=m/float(LA.norm(matA)*LA.norm(matB))
         return m
 
-def save_parameters(simulation_name,N,ksigma,kcut,a,sparsity,Nuncorr,eta,gamma,timesteps,s,normalization):
+def save_parameters(simulation_name,N,ksigma,kcut,a,sparsity,Nuncorr,eta,gamma,timesteps,normalization):
     f= open(simulation_name+"/parameters.txt","w+")
     f.writelines("N: "+str(N)+"\n")
     f.writelines("ksigma: "+str(ksigma)+"\n")
@@ -80,9 +80,22 @@ def save_parameters(simulation_name,N,ksigma,kcut,a,sparsity,Nuncorr,eta,gamma,t
     f.writelines("eta: "+str(eta)+"\n")
     f.writelines("gamma: "+str(gamma)+"\n")
     f.writelines("timesteps: "+str(timesteps)+"\n")
-    f.writelines("s: "+str(s)+"\n")
     f.writelines("normalization: "+str(normalization)+"\n")
     f.close() 
     return
     
-    
+def save_parametersRC(simulation_name,N,ksigma,kcut,a,sparsity,Nuncorr,eta,timesteps,t1,s,normalization):
+    f= open(simulation_name+"/parameters.txt","w+")
+    f.writelines("N: "+str(N)+"\n")
+    f.writelines("ksigma: "+str(ksigma)+"\n")
+    f.writelines("kcut: "+str(kcut)+"\n")
+    f.writelines("a: "+str(a)+"\n")
+    f.writelines("sparsity: "+str(sparsity)+"\n")
+    f.writelines("Nuncorr: "+str(Nuncorr)+"\n")
+    f.writelines("eta: "+str(eta)+"\n")
+    f.writelines("s: "+str(s)+"\n")
+    f.writelines("timesteps: "+str(timesteps)+"\n")
+    f.writelines("t1: "+str(t1)+"\n")
+    f.writelines("normalization: "+str(normalization)+"\n")
+    f.close() 
+    return

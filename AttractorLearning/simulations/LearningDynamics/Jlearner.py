@@ -48,29 +48,13 @@ class Jlearner:
         return
      
     #Activity determined only by the external field: J does not influence the values of V               
-    def computeV0(self,r,a,a2,sigma,cutoff): 
+    def computeV(self,r,a,a2,sigma,cutoff): 
         maxsteps=50
         b=0.01
         tolerance=0.01
         maxiter=1000000
         for i in range(self.N):
                 self.h[i]=Kgauss2D(self.gridB[i],r,sigma,cutoff)
-        self.V=np.asarray(list(map(lambda h: f(h,self.h0,self.g),self.h)))
-        self.h0=fix_parameters(self.V,self.h,self.g,self.h0,a,a2,b,tolerance,maxiter)
-        self.V=np.asarray(list(map(lambda h: f(h,self.h0,self.g),self.h)))
-        self.g=a/np.mean(self.V)
-        self.V=self.g*self.V
-        return
-    
-    #Input fields sum recurrent contribution and external contribution, with relative weight s
-    def computeVrc(self,r,s,a,a2,sigma,cutoff): 
-        maxsteps=50
-        b=0.01
-        tolerance=0.01
-        maxiter=1000000
-        self.h=s*np.dot(self.J,self.V)
-        for i in range(self.N):
-                self.h[i]+=(Kgauss2D(self.gridB[i],r,sigma,cutoff))/(1+s)
         self.V=np.asarray(list(map(lambda h: f(h,self.h0,self.g),self.h)))
         self.h0=fix_parameters(self.V,self.h,self.g,self.h0,a,a2,b,tolerance,maxiter)
         self.V=np.asarray(list(map(lambda h: f(h,self.h0,self.g),self.h)))
@@ -91,7 +75,6 @@ class Jlearner:
                     
                 if self.J[i][j]<0:
                     self.J[i][j]=0
-        #self.J=self.J/LA.norm(self.J)
         return
     
     #hebbain updating of synapses that have both pre and post synaptic units active
@@ -108,7 +91,6 @@ class Jlearner:
                     
                 if self.J[i][j]<0:
                     self.J[i][j]=0
-        #self.J=self.J/LA.norm(self.J)
         return
     
     
@@ -146,8 +128,8 @@ class Jlearner:
         self.J=self.J/LA.norm(self.J)
         return
     
-            
-    def LearningDynamics0(self,eta,gamma,timesteps,a,a2,sigma,cutoff,simulation_name,saveJs): 
+    
+    def LearningDynamics(self,eta,gamma,timesteps,a,a2,sigma,cutoff,simulation_name,saveJs): 
         self.J=copy.deepcopy(self.JA)
         rsamples=np.random.uniform(0,1,size=(timesteps,2))
         np.save(simulation_name+"/rsamples.npy",rsamples)
@@ -157,33 +139,7 @@ class Jlearner:
         mJAB=np.zeros(timesteps)
         for t in range(timesteps):
             r=rsamples[t]
-            self.computeV0(r,a,a2,sigma,cutoff) 
-            self.updateJ(eta,gamma) 
-            mJA[t]=overlap(self.J,self.JA)
-            mJB[t]=overlap(self.J,self.JB)
-            mJAB[t]=overlap(self.J,self.JB+self.JA)
-            if saveJs==True:
-                np.save(simulation_name+"/J"+str(t),self.J)
-            if t%100==0:
-                print(str(t)+" positions explored.")
-                print("Ovelaps: mJA="+str(overlap(self.J,self.JA))+"  mJB="+str(overlap(self.J,self.JB))+"  mJAB="+str(overlap(self.J,self.JB+self.JA)))
-            
-            
-        return mJA,mJB,mJAB
-    
-    
-    
-    def LearningDynamicsRC(self,s,eta,gamma,timesteps,a,a2,sigma,cutoff,simulation_name,saveJs): 
-        self.J=copy.deepcopy(self.JA)
-        rsamples=np.random.uniform(0,1,size=(timesteps,2))
-        np.save(simulation_name+"/rsamples.npy",rsamples)
-        print("initial ovelaps: mJA="+str(overlap(self.J,self.JA))+"  mJB="+str(overlap(self.J,self.JB))+"  mJAB="+str(overlap(self.J,self.JB+self.JA)))
-        mJA=np.zeros(timesteps)
-        mJB=np.zeros(timesteps)
-        mJAB=np.zeros(timesteps)
-        for t in range(timesteps):
-            r=rsamples[t]
-            self.computeVrc(r,s,a,a2,sigma,cutoff) 
+            self.computeV(r,a,a2,sigma,cutoff) 
             self.updateJ1(eta,gamma) 
             mJA[t]=overlap(self.J,self.JA)
             mJB[t]=overlap(self.J,self.JB)
@@ -198,7 +154,7 @@ class Jlearner:
         return mJA,mJB,mJAB
             
             
-    def LearningDynamicsRC_L2norm(self,s,eta,timesteps,a,a2,sigma,cutoff,simulation_name,saveJs): 
+    def LearningDynamics_L2norm(self,eta,timesteps,a,a2,sigma,cutoff,simulation_name,saveJs): 
         self.J=copy.deepcopy(self.JA)
         rsamples=np.random.uniform(0,1,size=(timesteps,2))
         np.save(simulation_name+"/rsamples.npy",rsamples)
@@ -208,7 +164,7 @@ class Jlearner:
         mJAB=np.zeros(timesteps)
         for t in range(timesteps):
             r=rsamples[t]
-            self.computeVrc(r,s,a,a2,sigma,cutoff) 
+            self.computeV(r,a,a2,sigma,cutoff) 
             self.updateJ2(eta) 
             mJA[t]=overlap(self.J,self.JA)
             mJB[t]=overlap(self.J,self.JB)
@@ -220,4 +176,43 @@ class Jlearner:
             print("Ovelaps: mJA="+str(overlap(self.J,self.JA))+"  mJB="+str(overlap(self.J,self.JB))+"  mJAB="+str(overlap(self.J,self.JB+self.JA)))
             
             
+        return mJA,mJB,mJAB
+
+    def RecurrentDynamics(self,s,eta,t1,timesteps,a,a2,sigma,cutoff,simulation_name,saveJs): 
+        #metaparameters
+        b=0.01
+        tolerance=0.01
+        maxiter=1000000
+        
+        self.J=copy.deepcopy(self.JA)
+        rsamples=np.random.uniform(0,1,size=(int(timesteps/t1),2))
+        np.save(simulation_name+"/rsamples.npy",rsamples)
+        mJA=np.zeros(timesteps)
+        mJB=np.zeros(timesteps)
+        mJAB=np.zeros(timesteps)
+        Vin=np.random.uniform(0,1,self.N)
+        Vin=Vin/np.mean(Vin)
+        self.V=Vin
+        for t in range(timesteps):
+            r=rsamples[int(t/t1)]
+            #compute V
+            self.h=s*np.dot(self.J,self.V)
+            for i in range(self.N):
+                self.h[i]+=(1-s)*Kgauss2D(self.gridB[i],r,sigma,cutoff)
+            self.V=np.asarray(list(map(lambda h: f(h,self.h0,self.g),self.h)))
+            self.h0=fix_parameters(self.V,self.h,self.g,self.h0,a,a2,b,tolerance,maxiter)
+            self.V=np.asarray(list(map(lambda h: f(h,self.h0,self.g),self.h)))
+            self.g=a/np.mean(self.V)
+            self.V=self.g*self.V
+            
+            self.updateJ2(eta) 
+            mJA[t]=overlap(self.J,self.JA)
+            mJB[t]=overlap(self.J,self.JB)
+            mJAB[t]=overlap(self.J,self.JB+self.JA)
+            if saveJs==True:
+                np.save(simulation_name+"/J"+str(t),self.J)
+            #if t%1==0:
+            print(str(t)+" positions explored.")
+            print("Ovelaps: mJA="+str(overlap(self.J,self.JA))+"  mJB="+str(overlap(self.J,self.JB))+"  mJAB="+str(overlap(self.J,self.JB+self.JA)))
+        
         return mJA,mJB,mJAB

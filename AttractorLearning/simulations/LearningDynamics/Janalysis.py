@@ -6,7 +6,7 @@ import numpy as np
 import os
 
 #PARAMETERS
-simulation_name="s3"
+simulation_name="s21"
 n=20 #linear number of cells
 N=n*n
 ksigma=0.1
@@ -16,8 +16,8 @@ sparsity=0.1
 s=0
 ndynamics=10
 
-steps=[0,10,20,30,40,50,60,70,80,90,100]
-
+#steps=[0,20,40,60,80,100,120,140,160,180,200]
+steps=[999]
 print("Initializing...")
 
 if not os.path.exists(simulation_name+"/Janalysis"):
@@ -55,6 +55,7 @@ for step in range(len(steps)):
         mA=Network.calculate_mA(ksigma,kcut)
         mB=Network.calculate_mB(ksigma,kcut)
         print("mA="+str(mA)+" mB="+str(mB))
+        np.save(simulation_name+"/Janalysis/V"+str(i),Network.V)
         MA[step][i]=mA
         MB[step][i]=mB
 

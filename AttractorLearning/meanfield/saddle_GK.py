@@ -14,10 +14,10 @@ import os
 def main():
     #PARAMETERS
     output_folder="GKoutput"
-    g=np.asarray([2.1,2.5,3.0,3.5,4.0,4.5])
-    s=np.linspace(0,2,21)
-    sig=np.linspace(0.01,0.5,10)
-    stability=np.zeros((len(g),len(s),len(sig)))
+    g=np.asarray([2.1,2.5,3.0,4.0,8,16,32])
+    s=np.linspace(0,4,21)
+    sig=np.linspace(0.001,0.5,10)
+    stability=np.zeros((len(g),len(sig),len(s)))
     
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
@@ -27,10 +27,10 @@ def main():
     np.save(output_folder+"/sigma.npy",sig)
     
     for i in range(len(g)):
-        for j in range(len(s)):
-            for k in range(len(sig)):
-                stability[i][j][k]=Stability(sig[k],s[j],g[i])
-                print("Done step "+str(k+j*len(sig)+i*len(s)*len(sig))+"/"+str(len(g)*len(s)*len(sig)))
+        for j in range(len(sig)):
+            for k in range(len(s)):
+                stability[i][j][k]=Stability(sig[j],s[k],g[i])
+                print("Done step "+str(k+j*len(s)+i*len(s)*len(sig))+"/"+str(len(g)*len(s)*len(sig)))
     
     np.save(output_folder+"/stability.npy",stability)
     return
@@ -51,14 +51,14 @@ def PHI1(r1,r2,sig):
     return out
 
 def Integrand1(rA,rB,sig,s,w):
-    h=s*(PHI1(rB,0.5,sig)-PHI1(rB,-0.5,sig))+w
+    h=s*(PHI1(rB,0.5,sig)-PHI1(rB,-0.5,sig))-w
     if h>0:
-        return L(rA,0,sig)*h
+        return L(rA,0,sig)*(PHI1(rA,0.5,sig)-PHI1(rA,-0.5,sig))
     else:
         return 0
 
 def Integrand2(rB,sig,s,w):
-    h=s*(PHI1(rB,0.5,sig)-PHI1(rB,-0.5,sig))+w
+    h=s*(PHI1(rB,0.5,sig)-PHI1(rB,-0.5,sig))-w
     if h>0:
         return h
     else:

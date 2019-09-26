@@ -36,8 +36,7 @@ class functions:
         return V
     
     def PBCkernel(self,r_i,r_r):
-        L=100
-        periodicity=L/2
+        periodicity=1/2
         V=0.0  
         dx=0
         dy=0
@@ -46,12 +45,12 @@ class functions:
         if np.abs(r_i[0]-r_r[0])<periodicity:
             dx=np.abs(r_i[0]-r_r[0])
         else:
-            dx=L-np.abs(r_i[0]-r_r[0])
+            dx=1-np.abs(r_i[0]-r_r[0])
             
         if np.abs(r_i[1]-r_r[1])<periodicity:
             dy=np.abs(r_i[1]-r_r[1])
         else:
-            dy=L-np.abs(r_i[1]-r_r[1])
+            dy=1-np.abs(r_i[1]-r_r[1])
         
         d=np.sqrt(pow(dx,2)+pow(dy,2))
         V=np.exp(-0.5*pow(d/self.sig,2))
@@ -134,7 +133,7 @@ class functions:
                        Vin,Vfin=self.dynamic(sparsity,InitialLocation,J,grid)
                        VinMat[i][j][t]=Vin
                        VoutMat[i][j][t]=Vfin
-                print("Cell ("+str(i)+","+str(j)+") calculated")
+                #print("Cell ("+str(i)+","+str(j)+") calculated")
         return VinMat,VoutMat
 
     
